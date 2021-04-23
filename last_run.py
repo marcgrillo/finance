@@ -11,25 +11,8 @@ for iterazione in range(1,1440):
     #!/usr/bin/python
     ########### Python 2.7 #############
     import http.client, urllib.request, urllib.parse, urllib.error, base64, re
-    import matplotlib as mpl
-    mpl.use('Agg')
-    import matplotlib.pyplot as plt
     import numpy as np
     import time
-    from matplotlib.ticker import MultipleLocator, FormatStrFormatter
-
-    # major and minor plot seetings
-    majorLocator = MultipleLocator(200)
-    majorFormatter = FormatStrFormatter('%d')
-    minorLocator = MultipleLocator(50)
-
-    majoryLocator = MultipleLocator(10)
-    majoryFormatter = FormatStrFormatter('%d')
-    minoryLocator = MultipleLocator(2)
-
-    majorXLocator = MultipleLocator(24)
-    majorXFormatter = FormatStrFormatter('%d')
-    minorXLocator = MultipleLocator(6)
 
     def history(a):
 
@@ -44,69 +27,26 @@ for iterazione in range(1,1440):
 
         return closeprice
 
-    def moving_average(x, n, type='simple'):
-        """
-        compute an n period moving average.
-
-        type is 'simple' | 'exponential'
-
-        """
-        x = np.asarray(x)
-        if type == 'simple':
-            weights = np.ones(n)
-        else:
-            weights = np.exp(np.linspace(-1., 0., n))
-
-        weights /= weights.sum()
-
-        a = np.convolve(x, weights, mode='full')[:len(x)]
-        a[:n] = a[n]
-        return a
-
-    def plotcoin(closeprice):
-
-        # create Bitcoin plot
-        ema50 = moving_average(closeprice, 2, type='exponential')
-        fig, ax1 = plt.subplots()
-        ax1.plot(closeprice[-10:] , 'g-')
-        ax1.plot(ema50[-10:] , 'r-') 
-        ax1.set_title('Bitcoin Price Etoro') 
-        ax1.set_xlabel('Time (1 Hour)', color='k')
-        ax1.set_ylabel('Close price (USD)', color='k')
-        ax1.tick_params(colors='k')
-        ax1.grid(color='k', linestyle='-', linewidth=0.5)
-        ax1.yaxis.set_major_locator(majorLocator)
-        ax1.yaxis.set_major_formatter(majorFormatter)
-        ax1.yaxis.set_minor_locator(minorLocator)
-        ax1.xaxis.set_major_locator(majorXLocator)
-        ax1.xaxis.set_major_formatter(majorXFormatter)
-        ax1.xaxis.set_minor_locator(minorXLocator)
-        plt.savefig('bitcoin.png')   # save the figure to file
-        plt.close(fig)    # close the figure
-
 
     conn = http.client.HTTPSConnection('candle.etoro.com')
     # 480 is 480 periods of 1 hour, 100000 is Bitcoin
-    conn.request("GET", "/candles/asc.json/OneMinute/1001/2")
+    conn.request("GET", "/candles/asc.json/OneDay/1001/2")
     response = conn.getresponse()
     data = response.read()
     #print(type(data))
     data=data.decode("utf-8")
     a = data.split(',')
     closeprice = history(a)
-    closeprice2=closeprice[0:len(closeprice)-1]
+    closeprice=closeprice[0:len(closeprice)-1]
     conn.close()
-    
-    closeprice=[]
-    for h in range(int(len(closeprice2)/23)):
-        closeprice.append(closeprice2[h*23])
+
 
 
     #SCELGO UN RANGE: VOGLIO ANALIZZARE DA 2 A 30 INTERVALLI DA 7 MINUTI
     #SCRIVO OGNI PERIODO IN UNA LISTA DI ARRAY
     #IL PERIODO PRESO E' SEMPRE L'ULTIMO DISPONIBILE
     l_int=7
-    rang=[2,5]
+    rang=[2,30]
     num_int=rang[1]-rang[0]
     arr=[]
     for i in range(rang[0],rang[1]+1):
@@ -116,7 +56,7 @@ for iterazione in range(1,1440):
     #Nota che l'ultimo valore e' quello ignoto da stimare
     import numpy as np
     inte=l_int
-    num_int_tot=5
+    num_int_tot=30
     periodo_max=closeprice[len(closeprice)-inte*num_int_tot+1:len(closeprice)]
     mat=[]
     for i in range(0,num_int_tot):
@@ -178,6 +118,7 @@ for iterazione in range(1,1440):
     #CALCOLO IL VALORE PREDETTO DI X_3 IMPONENDO IL VALORE CHE DOVREBBE AVERE AFFINCHE LA MEDIA DELLE MEDIE DEI K, COMPRESO DUNQUE
     #ANCHE L'ULTIMO INTERVALLO CHE CONTIENE IL VALORE DA STIMARE, SIA UGUALE AL VALORE CENTRALE DATO DAL FIT.
     lungheza=len(nuova)
+    #media_di_fit=0
     media_medie_k_pesati_updated=media_di_fit
     #media_medie_k_pesati_updated=(media_medie_k_pesati*lungheza+ultima_media)/lungheza+1
     #media_medie_k_pesati_updated*(lungheza+1)=media_medie_k_pesati*lungheza+ultima_media
@@ -204,7 +145,7 @@ for iterazione in range(1,1440):
     
     
 
-    time.sleep(1380)
+    time.sleep(60)
     #import checker
     #execfile('checker.py')
     #os.system("checker.py")
